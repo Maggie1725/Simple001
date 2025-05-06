@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Color Wheel</title>
+    <style>
+        body {
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #121212;
+            font-family: Arial, sans-serif;
+            overflow: hidden;
+        }
+
+        .container {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .color-wheel {
+            width: 400px;
+            height: 400px;
+            position: relative;
+            border-radius: 50%;
+            animation: rotate 20s linear infinite;
+            box-shadow: 0 0 50px rgba(255, 255, 255, 0.3);
+            transform-origin: center center;
+        }
+
+        .segment {
+            position: absolute;
+            width: 50%;
+            height: 50%;
+            transform-origin: bottom right;
+            border-radius: 50% 0 0 0;
+        }
+
+        .controls {
+            margin-top: 30px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 10px;
+            color: white;
+        }
+
+        .speed-control {
+            margin: 10px 0;
+            display: flex;
+            align-items: center;
+        }
+
+        .speed-control label {
+            margin-right: 10px;
+        }
+
+        .color-info {
+            margin-top: 20px;
+            text-align: center;
+            font-size: 1.2em;
+        }
+
+        .direction-toggle {
+            margin-top: 10px;
+        }
+
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+            transition: all 0.3s;
+        }
+
+        button:hover {
+            background-color: #45a049;
+            transform: scale(1.05);
+        }
+
+        .color-sample {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            margin: 10px auto;
+            border: 2px solid white;
+        }
+
+        @keyframes rotate {
+            from {
+                transform: rotate(0deg);
+            }
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="color-wheel" id="colorWheel"></div>
+        
+        <div class="controls">
+            <div class="speed-control">
+                <label for="speedControl">Rotation Speed:</label>
+                <input type="range" id="speedControl" min="1" max="40" value="20">
+            </div>
+            
+            <div class="direction-toggle">
+                <button id="directionBtn">Change Direction</button>
+                <button id="pauseBtn">Pause</button>
+            </div>
+            
+            <div class="color-info">
+                <div class="color-sample" id="colorSample"></div>
+                <p id="colorName">Hover over the wheel to see colors</p>
+                <p id="colorHex"></p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Colors for the wheel - standard 12-color wheel
+        const colors = [
+            { name: 'Red', hex: '#FF0000' },
+            { name: 'Red-Orange', hex: '#FF4500' },
+            { name: 'Orange', hex: '#FF8C00' },
+            { name: 'Yellow-Orange', hex: '#FFD700' },
+            { name: 'Yellow', hex: '#FFFF00' },
+            { name: 'Yellow-Green', hex: '#9ACD32' },
+            { name: 'Green', hex: '#008000' },
+            { name: 'Blue-Green', hex: '#008B8B' },
+            { name: 'Blue', hex: '#0000FF' },
+            { name: 'Blue-Violet', hex: '#8A2BE2' },
+            { name: 'Violet', hex: '#EE82EE' },
+            { name: 'Red-Violet', hex: '#C71585' }
+        ];
+
+        // Get DOM elements
+        const colorWheel = document.getElementById('colorWheel');
+        const speedControl = document.getElementById('speedControl');
+        const directionBtn = document.getElementById('directionBtn');
+        const pauseBtn = document.getElementById('pauseBtn');
+        const colorSample = document.getElementById('colorSample');
+        const colorName = document.getElementById('colorName');
+        const colorHex = document.getElementById('colorHex');
+        
+        let isPaused = false;
+        let isClockwise = true;
+
+        // Create the color wheel segments
+        function createColorWheel() {
+            colors.forEach((color, index) => {
+                const segment = document.createElement('div');
+                segment.className = 'segment';
+                segment.style.backgroundColor = color.hex;
+                segment.style.transform = `rotate(${index * 30}deg)`;
+                
+                // Store color data for hover effect
+                segment.dataset.name = color.name;
+                segment.dataset.hex = color.hex;
+                
+                // Add hover effect
+                segment.addEventListener('mouseover', () => {
+                    colorSample.style.backgroundColor = color.hex;
+                    colorName.textContent = color.name;
+                    colorHex.textContent = color.hex;
+                });
+                
+                colorWheel.appendChild(segment);
+            });
+        }
+
+        // Control the animation speed
+        speedControl.addEventListener('input', () => {
+            const speed = 41 - speedControl.value; // Invert for more intuitive control
+            colorWheel.style.animation = `rotate ${speed}s linear infinite ${isClockwise ? '' : 'reverse'}`;
+            
+            if (isPaused) {
+                colorWheel.style.animationPlayState = 'paused';
+            }
+        });
+
+        // Toggle rotation direction
+        directionBtn.addEventListener('click', () => {
+            isClockwise = !isClockwise;
+            const currentSpeed = 41 - speedControl.value;
+            colorWheel.style.animation = `rotate ${currentSpeed}s linear infinite ${isClockwise ? '' : 'reverse'}`;
+            
+            if (isPaused) {
+                colorWheel.style.animationPlayState = 'paused';
+            }
+        });
+
+        // Pause/Play animation
+        pauseBtn.addEventListener('click', () => {
+            isPaused = !isPaused;
+            colorWheel.style.animationPlayState = isPaused ? 'paused' : 'running';
+            pauseBtn.textContent = isPaused ? 'Play' : 'Pause';
+        });
+
+        // Initialize the wheel
+        createColorWheel();
+    </script>
+</body>
+</html>
